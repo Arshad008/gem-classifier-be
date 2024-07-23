@@ -30,6 +30,8 @@ def predict_image(model: Sequential, img_path):
     print(pred_class)
     print(known_classes[pred_class])
 
+    return known_classes[pred_class]
+
 # TODO uncomment following lines to test prediction
-model = initModel()
-predict_image(model,train_dir + 'Garnet Red\garnet red_2.jpg')
+# model = initModel()
+# predict_image(model,train_dir + 'Garnet Red\garnet red_2.jpg')
