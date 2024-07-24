@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request
 from flask_mysqldb import MySQL
 import uuid
 
-from db_helper import initDb,create_job_record
+from db_helper import initDb,create_job_record, UserRecord, create_user, get_user_id
 from web_service_helper import initWebServices, upload_file
 from predict import predict_image, initModel
 
@@ -17,6 +17,49 @@ dbInstance = initDb(app)
 def hello_world():
     # create_job_record(dbInstance, "Test note", "Test class", "test record")
     return jsonify({"status": 1})
+
+@app.route('/user', methods=['POST'])
+def user_signup_endpoint():
+    result = {"success": False, "msg": "", "data": None}
+    json = request.json
+
+    # TODO trim and check values
+
+    if not "name" in json:
+        result['msg'] = "Username is required"
+        return result
+    if not "password" in json:
+        result['msg'] = "Password is required"
+        return result
+    
+    username = json["name"]
+    password = json["password"]
+
+    record = create_user(dbInstance, username, password)
+    result['data'] = record.serialize()
+    result["success"] = True
+    return jsonify(result)
+
+@app.route('/user/login', methods=['POST'])
+def user_login_endpoint():
+    result = {"success": False, "msg": "", "data": None}
+    # TODO trim and check values
+    json = request.json
+
+    if not "name" in json:
+        result['msg'] = "Username is required"
+        return result
+    if not "password" in json:
+        result['msg'] = "Password is required"
+        return result
+    
+    name = json["name"]
+    password = json["password"]
+    
+    userId = get_user_id(dbInstance, name, password)
+    result['data'] = userId
+    result["success"] = userId != None and userId != ""
+    return jsonify(result)
 
 @app.route('/predict', methods=['GET', 'POST'])
 def predict_endpoint():
