@@ -18,7 +18,7 @@ from tensorflow.keras.models import Sequential, load_model
 def initModel():
     return load_model(model_path)
 
-def predict_image(model: Sequential, img_path):
+def predict_image(model: Sequential, img_path: str):
     image = prepare_image(img_path)
     image = edge_and_cut(image)
     pred_image = np.array([image])
@@ -27,8 +27,8 @@ def predict_image(model: Sequential, img_path):
     predict_x = model.predict(pred_image)
     pred_class = np.argmax(predict_x,axis=1)[0]
 
-    print(pred_class)
-    print(known_classes[pred_class])
+    # print(pred_class)
+    # print(known_classes[pred_class])
 
     return known_classes[pred_class]
 
