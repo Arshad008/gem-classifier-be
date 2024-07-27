@@ -56,35 +56,41 @@ def get_job_history(dbInstance: MySQL, userId):
     return result
 class UserRecord:
     userId: str
-    name: str
+    firstName: str
+    lastName: str
+    email: str
     password: str
     lastLogin: datetime
     createdAt: datetime
 
     def serialize(self):
         return {
-            "userId" : self.userId,
-            "name" : self.name,
-            "password" : self.password,
-            "lastLogin" : self.lastLogin,
-            "createdAt" : self.createdAt,
+            "userId": self.userId,
+            "firstName": self.firstName,
+            "lastName": self.lastName,
+            "email": self.email,
+            "password": self.password,
+            "lastLogin": self.lastLogin,
+            "createdAt": self.createdAt,
         }
 
     def fromJson(json):
-        return UserRecord(json["userId"] or "", json["name"] or "", json["password"] or "", safe_date_cast(json["lastLogin"]), safe_date_cast(json["createdAt"]))
+        return UserRecord(json["userId"] or "", json["firstName"] or "", json["lastName"] or "", json["email"] or "", json["password"] or "", safe_date_cast(json["lastLogin"]), safe_date_cast(json["createdAt"]))
 
-    def __init__(self, userId: str, name: str, password: str, lastLogin: datetime, createdAt: datetime):
+    def __init__(self, userId: str, firstName: str, lastName: str, email: str, password: str, lastLogin: datetime, createdAt: datetime):
         self.userId = userId
-        self.name = name
+        self.firstName = firstName
+        self.lastName = lastName
+        self.email = email
         self.password = password
         self.lastLogin = lastLogin
         self.createdAt = createdAt
 
-def create_user(dbInstance: MySQL, name: str, password: str)-> UserRecord:
-    record = UserRecord(uuid.uuid4(), name, password, datetime.now(), datetime.now())
+def create_user(dbInstance: MySQL, firstName: str, lastName: str, email: str, password: str)-> UserRecord:
+    record = UserRecord(uuid.uuid4(), firstName, lastName, email, password, datetime.now(), datetime.now())
     cur = dbInstance.connection.cursor()
-    cur.execute('''INSERT INTO app_users (`user_id`, `name`, `password`, `last_login`, `created_at`) VALUES (%s,%s,%s,%s,%s);''',
-                (record.userId, name, password, record.lastLogin.isoformat(), record.createdAt.isoformat()))
+    cur.execute('''INSERT INTO app_users (`user_id`, `firstName`, `lastName`, `email`, `password`, `last_login`, `created_at`) VALUES (%s,%s,%s,%s,%s,%s,%s);''',
+                (record.userId, firstName, lastName, email, password, record.lastLogin.isoformat(), record.createdAt.isoformat()))
     dbInstance.connection.commit()
     cur.close()
     return record
@@ -104,6 +110,16 @@ def get_user_id(dbInstance: MySQL, name: str, password: str)-> UserRecord:
 def check_for_user_id(dbInstance: MySQL, userId: str)-> bool:
     cur = dbInstance.connection.cursor()
     cur.execute('''SELECT user_id FROM app_users WHERE (user_id = %s)''', [userId])
+    result = cur.fetchone()
+    cur.close()
+
+    if result is not None:
+        return True
+    return False
+
+def check_for_user_email(dbInstance: MySQL, email: str)-> bool:
+    cur = dbInstance.connection.cursor()
+    cur.execute('''SELECT user_id FROM app_users WHERE (email = %s)''', [email])
     result = cur.fetchone()
     cur.close()
 
