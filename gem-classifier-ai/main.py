@@ -1,6 +1,7 @@
 import os
 from flask import Flask, jsonify, request, Response
 from flask_mysqldb import MySQL
+from flask_cors import CORS, cross_origin
 import uuid
 import json
 
@@ -10,6 +11,9 @@ from web_service_helper import initWebServices, upload_file
 from predict import predict_image, initModel
 
 app = Flask(__name__)
+
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 model = initModel()
 
