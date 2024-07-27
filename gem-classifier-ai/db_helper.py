@@ -1,7 +1,8 @@
-from flask import Flask, jsonify
+from flask import Flask
 from flask_mysqldb import MySQL
 from datetime import datetime
 from utils import safe_date_cast
+
 import uuid
 
 def initDb(app: Flask):
@@ -18,6 +19,15 @@ class JobRecord:
     imageUrl: str
     createdAt: datetime
 
+    def serialize(self):
+        return {
+            "jobId" : self.jobId,
+            "note" : self.note,
+            "classifiedClass" : self.classifiedClass,
+            "imageUrl" : self.imageUrl,
+            "createdAt" : self.createdAt,
+        }
+
     def __init__(self, jobId: int, note: str, classifiedClass: str, imageUrl: str, createdAt: datetime):
         self.jobId = jobId
         self.note = note
@@ -26,15 +36,24 @@ class JobRecord:
         self.createdAt = createdAt
 
 
-def create_job_record(dbInstance: MySQL, jobId: str, note: str, classifiedClass: str, imageUrl: str)-> JobRecord:
+def create_job_record(dbInstance: MySQL, jobId: str, note: str, classifiedClass: str, imageUrl: str, userId: str)-> JobRecord:
     record = JobRecord(jobId, note, classifiedClass, imageUrl, datetime.now())
     cur = dbInstance.connection.cursor()
-    cur.execute('''INSERT INTO gem_classification_jobs (`jobId`, `note`, `classifiedClass`, `imageUrl`, `createdAt`) VALUES (%s,%s,%s,%s,%s);''',
-                (jobId, note, classifiedClass, imageUrl, record.createdAt.isoformat(),))
+    cur.execute('''INSERT INTO gem_classification_jobs (`jobId`, `note`, `classifiedClass`, `imageUrl`, `createdAt`, `userId`) VALUES (%s,%s,%s,%s,%s,%s);''',
+                (jobId, note, classifiedClass, imageUrl, record.createdAt.isoformat(),userId))
     dbInstance.connection.commit()
     cur.close()
     return record
 
+def get_job_history(dbInstance: MySQL, userId):
+    result = []
+    cur = dbInstance.connection.cursor()
+    cur.execute('''SELECT `jobId`, `note`, `classifiedClass`, `imageUrl`, `createdAt` FROM gem_classification_jobs WHERE (userId = %s)''', [userId])
+
+    for row in cur:
+        result.append(JobRecord(row[0], row[1], row[2], row[3], row[4]).serialize())
+
+    return result
 class UserRecord:
     userId: str
     name: str
@@ -81,3 +100,13 @@ def get_user_id(dbInstance: MySQL, name: str, password: str)-> UserRecord:
         return result[0]
     
     return None
+
+def check_for_user_id(dbInstance: MySQL, userId: str)-> bool:
+    cur = dbInstance.connection.cursor()
+    cur.execute('''SELECT user_id FROM app_users WHERE (user_id = %s)''', [userId])
+    result = cur.fetchone()
+    cur.close()
+
+    if result is not None:
+        return True
+    return False
