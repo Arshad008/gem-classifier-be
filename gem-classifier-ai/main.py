@@ -47,7 +47,6 @@ def user_signup_endpoint():
     password = json["password"]
 
     user_exist = check_for_user_email(dbInstance, email)
-    print(user_exist)
 
     if (user_exist == True):
         result['msg'] = "User already exist"
