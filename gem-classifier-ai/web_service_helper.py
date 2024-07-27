@@ -8,7 +8,6 @@ allowed_extensions = set(['png', 'jpg', 'jpeg'])
 def initWebServices(app: Flask):
     app.config['UPLOAD_DIST'] = upload_dir
 
-
 def allowed_file(filename) -> str:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
@@ -25,7 +24,7 @@ class UploadSummary:
         self.isUploaded = isUploaded
         self.msg = msg
 
-def upload_file(app: Flask) -> UploadSummary:
+def upload_file(app: Flask, jobId: str) -> UploadSummary:
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -36,8 +35,8 @@ def upload_file(app: Flask) -> UploadSummary:
         if file.filename == '':
             return UploadSummary("", False, "No files selected")
         if file and allowed_file(file.filename):
-            filename = file.filename
+            filename = jobId + ".jpg"
             file.save(os.path.join(app.config['UPLOAD_DIST'], filename))
-            return UploadSummary(file.filename, True, "")
+            return UploadSummary(filename, True, "")
     
     return UploadSummary("", False, "No files uploaded")
