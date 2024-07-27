@@ -5,7 +5,7 @@ import uuid
 import json
 
 from db_helper import JobRecord, initDb,create_job_record, get_job_history
-from db_helper import UserRecord, create_user, get_user_id, check_for_user_id
+from db_helper import UserRecord, create_user, get_user_id, check_for_user_id, check_for_user_email
 from web_service_helper import initWebServices, upload_file
 from predict import predict_image, initModel
 
@@ -45,6 +45,13 @@ def user_signup_endpoint():
     lastName = json["lastName"]
     email = json["email"]
     password = json["password"]
+
+    user_exist = check_for_user_email(dbInstance, email)
+    print(user_exist)
+
+    if (user_exist == True):
+        result['msg'] = "User already exist"
+        return result
 
     record = create_user(dbInstance, firstName, lastName, email, password)
     result['data'] = record.serialize()

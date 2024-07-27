@@ -116,3 +116,13 @@ def check_for_user_id(dbInstance: MySQL, userId: str)-> bool:
     if result is not None:
         return True
     return False
+
+def check_for_user_email(dbInstance: MySQL, email: str)-> bool:
+    cur = dbInstance.connection.cursor()
+    cur.execute('''SELECT user_id FROM app_users WHERE (email = %s)''', [email])
+    result = cur.fetchone()
+    cur.close()
+
+    if result is not None:
+        return True
+    return False
