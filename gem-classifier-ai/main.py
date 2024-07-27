@@ -28,17 +28,25 @@ def user_signup_endpoint():
 
     # TODO trim and check values
 
-    if not "name" in json:
-        result['msg'] = "Username is required"
+    if not "firstName" in json:
+        result['msg'] = "First Name is required"
+        return result
+    if not "lastName" in json:
+        result['msg'] = "Last Name is required"
+        return result
+    if not "email" in json:
+        result['msg'] = "Email is required"
         return result
     if not "password" in json:
         result['msg'] = "Password is required"
         return result
     
-    username = json["name"]
+    firstName = json["firstName"]
+    lastName = json["lastName"]
+    email = json["email"]
     password = json["password"]
 
-    record = create_user(dbInstance, username, password)
+    record = create_user(dbInstance, firstName, lastName, email, password)
     result['data'] = record.serialize()
     result["success"] = True
     return jsonify(result)
