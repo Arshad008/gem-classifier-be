@@ -95,10 +95,10 @@ def create_user(dbInstance: MySQL, firstName: str, lastName: str, email: str, pa
     cur.close()
     return record
 
-def get_user_id(dbInstance: MySQL, name: str, password: str)-> UserRecord:
+def get_user_id(dbInstance: MySQL, email: str, password: str)-> UserRecord:
     cur = dbInstance.connection.cursor()
-    cur.execute('''SELECT user_id FROM app_users WHERE (name = %s) AND (password = %s)''',
-                (name, password))
+    cur.execute('''SELECT user_id FROM app_users WHERE (email = %s) AND (password = %s)''',
+                (email, password))
     result = cur.fetchone()
     cur.close()
 

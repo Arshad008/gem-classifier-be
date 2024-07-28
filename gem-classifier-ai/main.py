@@ -67,17 +67,17 @@ def user_login_endpoint():
     # TODO trim and check values
     json = request.json
 
-    if not "name" in json:
-        result['msg'] = "Username is required"
+    if not "email" in json:
+        result['msg'] = "Email is required"
         return result
     if not "password" in json:
         result['msg'] = "Password is required"
         return result
     
-    name = json["name"]
+    email = json["email"]
     password = json["password"]
     
-    userId = get_user_id(dbInstance, name, password)
+    userId = get_user_id(dbInstance, email, password)
     result['data'] = userId
     result["success"] = userId != None and userId != ""
     return jsonify(result)
