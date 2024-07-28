@@ -142,24 +142,27 @@ def predict_endpoint():
 
     # begin upload
     upload = upload_file(app, str(jobId))
-    note = request.form.get("note")
 
     if(upload.isUploaded != True):
         result['msg'] = upload.msg
         return jsonify(result)
     
     # predic result
-    predict_result = predict_image(model, upload.get_uploaded_filename())
+    predict_output = predict_image(model, upload.get_uploaded_filename())
+    predict_result = predict_output[0]
 
     # save record
-    create_job_record(dbInstance, jobId, note, predict_result, upload.filename, userId)
+    create_job_record(dbInstance, jobId, predict_output[1], predict_result, upload.filename, userId)
     
     # TODO uncomment for debug trace
     # print("[predict] -> img" + upload.get_uploaded_filename())
     # print("[predict] -> result " + predict_result)
     
     result['success'] = True
-    result['data'] = predict_result
+    result['data'] = {
+        "result": predict_result,
+        "matches": str(predict_output[1])
+    }
     
     return jsonify(result)
 
