@@ -6,7 +6,7 @@ import uuid
 import json
 
 from db_helper import JobRecord, initDb,create_job_record, get_job_history
-from db_helper import UserRecord, create_user, get_user_id, check_for_user_id, check_for_user_email
+from db_helper import UserRecord, create_user, get_user_id, check_for_user_id, check_for_user_email, get_user
 from web_service_helper import initWebServices, upload_file
 from predict import predict_image, initModel
 
@@ -25,9 +25,27 @@ def hello_world():
     # create_job_record(dbInstance, "Test note", "Test class", "test record")
     return jsonify({"status": 1})
 
-@app.route('/user', methods=['POST'])
+@app.route('/user', methods=['POST', 'GET'])
 def user_signup_endpoint():
     result = {"success": False, "msg": "", "data": None}
+
+    if request.method == "GET":
+        result = {"success": False, "msg": "", "data": None }
+
+        # user validation
+        resp = validate_user(request, result)
+
+        if not resp is None:
+            return resp
+        
+        userId = request.headers['auth']
+
+        userInfo = get_user(dbInstance, userId)
+
+        result['data'] = userInfo.serialize()
+
+        return result
+
     json = request.json
 
     # TODO trim and check values

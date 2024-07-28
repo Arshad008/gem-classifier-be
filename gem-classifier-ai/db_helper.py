@@ -95,7 +95,7 @@ def create_user(dbInstance: MySQL, firstName: str, lastName: str, email: str, pa
     cur.close()
     return record
 
-def get_user_id(dbInstance: MySQL, email: str, password: str)-> UserRecord:
+def get_user_id(dbInstance: MySQL, email: str, password: str)-> str:
     cur = dbInstance.connection.cursor()
     cur.execute('''SELECT user_id FROM app_users WHERE (email = %s) AND (password = %s)''',
                 (email, password))
@@ -104,6 +104,18 @@ def get_user_id(dbInstance: MySQL, email: str, password: str)-> UserRecord:
 
     if result:
         return result[0]
+    
+    return None
+
+def get_user(dbInstance: MySQL, userId: str)->UserRecord:
+    cur = dbInstance.connection.cursor()
+    cur.execute('''SELECT `user_id`, `firstName`, `lastName`, `email`, `last_login`, `created_at` FROM app_users WHERE (user_id = %s)''',
+                [userId])
+    result = cur.fetchone()
+    cur.close()
+
+    if result:
+        return UserRecord(result[0], result[1], result[2], result[3], "", result[4], result[5])
     
     return None
 
