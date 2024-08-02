@@ -143,6 +143,7 @@ def view_history_endpoint():
     userId = request.headers['auth']
     records = get_job_history(dbInstance, userId)
     result['data'] = records
+    result['success'] = True
     
     return jsonify(result)
 
