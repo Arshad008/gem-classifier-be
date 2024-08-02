@@ -43,6 +43,7 @@ def user_signup_endpoint():
         userInfo = get_user(dbInstance, userId)
 
         result['data'] = userInfo.serialize()
+        result["success"] = True
 
         return result
 
