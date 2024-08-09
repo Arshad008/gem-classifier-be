@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request, Response
+from flask import Flask, jsonify, request, Response, send_from_directory
 from flask_mysqldb import MySQL
 from flask_cors import CORS, cross_origin
 import uuid
@@ -11,6 +11,8 @@ from web_service_helper import initWebServices, upload_file
 from predict import predict_image, initModel
 
 app = Flask(__name__)
+
+UPLOAD_FOLDER = 'uploads'
 
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -24,6 +26,13 @@ dbInstance = initDb(app)
 def hello_world():
     # create_job_record(dbInstance, "Test note", "Test class", "test record")
     return jsonify({"status": 1})
+
+@app.route('/uploads/<filename>')
+def serve_image(filename):
+    try:
+        return send_from_directory(UPLOAD_FOLDER, filename)
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
 
 @app.route('/user', methods=['POST', 'GET'])
 def user_signup_endpoint():
