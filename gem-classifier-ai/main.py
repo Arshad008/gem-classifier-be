@@ -1,15 +1,19 @@
-import os
-from flask import Flask, jsonify, request, Response
-from flask_mysqldb import MySQL
 import uuid
 import json
+from flask import Flask, jsonify, request, Response, send_from_directory
+from flask_cors import CORS
 
-from db_helper import JobRecord, initDb,create_job_record, get_job_history
-from db_helper import UserRecord, create_user, get_user_id, check_for_user_id, check_for_user_email
+from db_helper import initDb,create_job_record, get_job_history
+from db_helper import create_user, get_user_id, check_for_user_id, check_for_user_email, get_user
 from web_service_helper import initWebServices, upload_file
 from predict import predict_image, initModel
 
 app = Flask(__name__)
+
+UPLOAD_FOLDER = 'uploads'
+
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 model = initModel()
 
@@ -21,9 +25,35 @@ def hello_world():
     # create_job_record(dbInstance, "Test note", "Test class", "test record")
     return jsonify({"status": 1})
 
-@app.route('/user', methods=['POST'])
+@app.route('/uploads/<filename>')
+def serve_image(filename):
+    try:
+        return send_from_directory(UPLOAD_FOLDER, filename)
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
+
+@app.route('/user', methods=['POST', 'GET'])
 def user_signup_endpoint():
     result = {"success": False, "msg": "", "data": None}
+
+    if request.method == "GET":
+        result = {"success": False, "msg": "", "data": None }
+
+        # user validation
+        resp = validate_user(request, result)
+
+        if not resp is None:
+            return resp
+        
+        userId = request.headers['auth']
+
+        userInfo = get_user(dbInstance, userId)
+
+        result['data'] = userInfo.serialize()
+        result["success"] = True
+
+        return result
+
     json = request.json
 
     # TODO trim and check values
@@ -63,17 +93,17 @@ def user_login_endpoint():
     # TODO trim and check values
     json = request.json
 
-    if not "name" in json:
-        result['msg'] = "Username is required"
+    if not "email" in json:
+        result['msg'] = "Email is required"
         return result
     if not "password" in json:
         result['msg'] = "Password is required"
         return result
     
-    name = json["name"]
+    email = json["email"]
     password = json["password"]
     
-    userId = get_user_id(dbInstance, name, password)
+    userId = get_user_id(dbInstance, email, password)
     result['data'] = userId
     result["success"] = userId != None and userId != ""
     return jsonify(result)
@@ -120,6 +150,7 @@ def view_history_endpoint():
     userId = request.headers['auth']
     records = get_job_history(dbInstance, userId)
     result['data'] = records
+    result['success'] = True
     
     return jsonify(result)
 
@@ -138,24 +169,27 @@ def predict_endpoint():
 
     # begin upload
     upload = upload_file(app, str(jobId))
-    note = request.form.get("note")
 
     if(upload.isUploaded != True):
         result['msg'] = upload.msg
         return jsonify(result)
     
     # predic result
-    predict_result = predict_image(model, upload.get_uploaded_filename())
+    predict_output = predict_image(model, upload.get_uploaded_filename())
+    predict_result = predict_output[0]
 
     # save record
-    create_job_record(dbInstance, jobId, note, predict_result, upload.filename, userId)
+    create_job_record(dbInstance, jobId, predict_output[1], predict_result, upload.filename, userId)
     
     # TODO uncomment for debug trace
     # print("[predict] -> img" + upload.get_uploaded_filename())
     # print("[predict] -> result " + predict_result)
     
     result['success'] = True
-    result['data'] = predict_result
+    result['data'] = {
+        "result": predict_result,
+        "matches": str(predict_output[1])
+    }
     
     return jsonify(result)
 

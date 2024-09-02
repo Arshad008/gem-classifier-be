@@ -1,7 +1,4 @@
 import os
-import matplotlib.pyplot as plt
-import seaborn as sn
-import cv2
 from random import randint
 import numpy as np
 
@@ -21,7 +18,7 @@ script_dir = os.path.dirname(__file__)
 dataset_dir = os.path.join(script_dir, 'dataset\\')
 train_dir = dataset_dir + 'train\\'
 test_dir = dataset_dir + 'test\\'
-model_path = os.path.join(script_dir,'model\\classifier_model_test2.keras')
+model_path = os.path.join(script_dir,'model\\classifier_model.keras')
 
 print('[dataset] ' + dataset_dir)
 

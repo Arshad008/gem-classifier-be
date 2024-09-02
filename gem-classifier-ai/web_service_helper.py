@@ -1,5 +1,5 @@
 import os
-from flask import Flask, flash, request, redirect, url_for
+from flask import Flask, request
 
 script_dir = os.path.dirname(__file__)
 upload_dir = os.path.join(script_dir, 'uploads\\')

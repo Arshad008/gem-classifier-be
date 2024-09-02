@@ -14,7 +14,7 @@ def initDb(app: Flask):
 
 class JobRecord:
     jobId: str
-    note: str
+    matchesData: str
     classifiedClass: str
     imageUrl: str
     createdAt: datetime
@@ -22,25 +22,25 @@ class JobRecord:
     def serialize(self):
         return {
             "jobId" : self.jobId,
-            "note" : self.note,
+            "matchesData" : self.matchesData,
             "classifiedClass" : self.classifiedClass,
             "imageUrl" : self.imageUrl,
             "createdAt" : self.createdAt,
         }
 
-    def __init__(self, jobId: int, note: str, classifiedClass: str, imageUrl: str, createdAt: datetime):
+    def __init__(self, jobId: int, matchesData: str, classifiedClass: str, imageUrl: str, createdAt: datetime):
         self.jobId = jobId
-        self.note = note
+        self.matchesData = matchesData
         self.classifiedClass = classifiedClass
         self.imageUrl = imageUrl
         self.createdAt = createdAt
 
 
-def create_job_record(dbInstance: MySQL, jobId: str, note: str, classifiedClass: str, imageUrl: str, userId: str)-> JobRecord:
-    record = JobRecord(jobId, note, classifiedClass, imageUrl, datetime.now())
+def create_job_record(dbInstance: MySQL, jobId: str, matches_data: str, classifiedClass: str, imageUrl: str, userId: str)-> JobRecord:
+    record = JobRecord(jobId, matches_data, classifiedClass, imageUrl, datetime.now())
     cur = dbInstance.connection.cursor()
-    cur.execute('''INSERT INTO gem_classification_jobs (`jobId`, `note`, `classifiedClass`, `imageUrl`, `createdAt`, `userId`) VALUES (%s,%s,%s,%s,%s,%s);''',
-                (jobId, note, classifiedClass, imageUrl, record.createdAt.isoformat(),userId))
+    cur.execute('''INSERT INTO gem_classification_jobs (`jobId`, `matches_data`, `classifiedClass`, `imageUrl`, `createdAt`, `userId`) VALUES (%s,%s,%s,%s,%s,%s);''',
+                (jobId, matches_data, classifiedClass, imageUrl, record.createdAt.isoformat(),userId))
     dbInstance.connection.commit()
     cur.close()
     return record
@@ -48,7 +48,7 @@ def create_job_record(dbInstance: MySQL, jobId: str, note: str, classifiedClass:
 def get_job_history(dbInstance: MySQL, userId):
     result = []
     cur = dbInstance.connection.cursor()
-    cur.execute('''SELECT `jobId`, `note`, `classifiedClass`, `imageUrl`, `createdAt` FROM gem_classification_jobs WHERE (userId = %s)''', [userId])
+    cur.execute('''SELECT `jobId`, `matches_data`, `classifiedClass`, `imageUrl`, `createdAt` FROM gem_classification_jobs WHERE (userId = %s)''', [userId])
 
     for row in cur:
         result.append(JobRecord(row[0], row[1], row[2], row[3], row[4]).serialize())
@@ -95,15 +95,27 @@ def create_user(dbInstance: MySQL, firstName: str, lastName: str, email: str, pa
     cur.close()
     return record
 
-def get_user_id(dbInstance: MySQL, name: str, password: str)-> UserRecord:
+def get_user_id(dbInstance: MySQL, email: str, password: str)-> str:
     cur = dbInstance.connection.cursor()
-    cur.execute('''SELECT user_id FROM app_users WHERE (name = %s) AND (password = %s)''',
-                (name, password))
+    cur.execute('''SELECT user_id FROM app_users WHERE (email = %s) AND (password = %s)''',
+                (email, password))
     result = cur.fetchone()
     cur.close()
 
     if result:
         return result[0]
+    
+    return None
+
+def get_user(dbInstance: MySQL, userId: str)->UserRecord:
+    cur = dbInstance.connection.cursor()
+    cur.execute('''SELECT `user_id`, `firstName`, `lastName`, `email`, `last_login`, `created_at` FROM app_users WHERE (user_id = %s)''',
+                [userId])
+    result = cur.fetchone()
+    cur.close()
+
+    if result:
+        return UserRecord(result[0], result[1], result[2], result[3], "", result[4], result[5])
     
     return None
 
