@@ -7,7 +7,7 @@ script_dir = os.path.dirname(__file__)
 dataset_dir = os.path.join(script_dir, 'dataset\\')
 train_dir = dataset_dir + 'train\\'
 test_dir = dataset_dir + 'test\\'
-model_path = os.path.join(script_dir,'model\\classifier_model.h5')
+model_path = os.path.join(script_dir,'model\\classifier_model.keras')
 
 CLASSES, gems = [], [] # names of classes, count of images for each class
 img_w, img_h = 220, 220    # width and height of image

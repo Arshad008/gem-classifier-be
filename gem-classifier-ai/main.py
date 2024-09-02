@@ -1,12 +1,10 @@
-import os
-from flask import Flask, jsonify, request, Response, send_from_directory
-from flask_mysqldb import MySQL
-from flask_cors import CORS, cross_origin
 import uuid
 import json
+from flask import Flask, jsonify, request, Response, send_from_directory
+from flask_cors import CORS
 
-from db_helper import JobRecord, initDb,create_job_record, get_job_history
-from db_helper import UserRecord, create_user, get_user_id, check_for_user_id, check_for_user_email, get_user
+from db_helper import initDb,create_job_record, get_job_history
+from db_helper import create_user, get_user_id, check_for_user_id, check_for_user_email, get_user
 from web_service_helper import initWebServices, upload_file
 from predict import predict_image, initModel
 
